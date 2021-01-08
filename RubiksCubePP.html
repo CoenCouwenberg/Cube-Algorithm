@@ -53,11 +53,12 @@
 					disableWebGL2Support: false,
 				});
 			};
-			let rotationSpeed = 60;
+			let rotationSpeed = 60; // Was achteraf niet nodig
 			let animationDone = null;
 			class Playground {
 				static CreateScene(engine, canvas) {
 					var scene = new BABYLON.Scene(engine);
+					// Variable kleuren maken
 					var faceColors = [
 						BABYLON.Color4.FromHexString("#0066FFFF"),
 						BABYLON.Color4.FromHexString("#33CC00FF"),
@@ -66,6 +67,7 @@
 						BABYLON.Color4.FromHexString("#FFFFFFFF"),
 						BABYLON.Color4.FromHexString("#FFFF66FF"),
 					];
+					// Camera renderen
 					const camera = new BABYLON.ArcRotateCamera(
 						"camera",
 						0,
@@ -79,18 +81,38 @@
 					camera.attachControl(canvas, true);
 					camera.lowerRadiusLimit = 10;
 					camera.upperRadiusLimit = 10;
+					// Lamp van binnen maken
 					const light = new BABYLON.HemisphericLight(
 						"light",
 						new BABYLON.Vector3(0, 1, 0),
 						scene
 					);
+					// Lichtere lichtinval, anders word het grimmig
 					light.intensity = 2;
 					light.setDirectionToTarget(BABYLON.Vector3.Zero());
+
+					// Lichten dimmen met SPATIE met deze action kan ik later ook proberen de formule op pauze te zetten of een stap terug te gaan https://youtu.be/_fTS5W0RPkc?t=337
+					scene.actionManager = new BABYLON.ActionManager(scene);
+					scene.actionManager.registerAction(
+						new BABYLON.ExecuteCodeAction(
+							{
+								trigger: BABYLON.ActionManager.OnKeyUpTrigger,
+								parameter: " ",
+							},
+							function () {
+								light.setEnabled(!light.isEnabled());
+							}
+						)
+					);
+
+					// Een houder voor de kubus
 					const holder = new BABYLON.TransformNode("holder", scene);
 					holder.position.set(0, 0, 0);
+					// Voor de draaing
 					const pivot = new BABYLON.TransformNode("pivot", scene);
 					pivot.position.set(0, 0, 0);
 					const cubies = [];
+					// 3 for loops in elkaar op de X & Y en Z as, 3x3 kubus. Vanaf -1 omdat die dan precies in het midden staat
 					for (let x = -1; x <= 1; x++) {
 						for (let y = -1; y <= 1; y++) {
 							for (let z = -1; z <= 1; z++) {
@@ -107,6 +129,9 @@
 							}
 						}
 					}
+
+					// Schermen aan de zijkant om beter te testen
+					scene.debugLayer.show();
 
 					return scene;
 				}
