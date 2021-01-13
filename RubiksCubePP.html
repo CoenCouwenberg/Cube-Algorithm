@@ -60,12 +60,19 @@
 					var scene = new BABYLON.Scene(engine);
 					// Variable kleuren maken
 					var faceColors = [
-						BABYLON.Color4.FromHexString("#0066FFFF"),
-						BABYLON.Color4.FromHexString("#33CC00FF"),
-						BABYLON.Color4.FromHexString("#FF0000FF"),
-						BABYLON.Color4.FromHexString("#FF9900FF"),
-						BABYLON.Color4.FromHexString("#FFFFFFFF"),
-						BABYLON.Color4.FromHexString("#FFFF66FF"),
+						BABYLON.Color4.FromHexString("#0066FFFF"), // Blauw
+						BABYLON.Color4.FromHexString("#33CC00FF"), // Groen
+						BABYLON.Color4.FromHexString("#FF9900FF"), // Oranje
+						BABYLON.Color4.FromHexString("#FF0000FF"), // Rood
+						BABYLON.Color4.FromHexString("#FFFF66FF"), // Geel
+						BABYLON.Color4.FromHexString("#FFFFFFFF"), // Wit
+
+						// BABYLON.Color4.FromHexString("#0066FFFF"),
+						// BABYLON.Color4.FromHexString("#33CC00FF"),
+						// BABYLON.Color4.FromHexString("#FF0000FF"),
+						// BABYLON.Color4.FromHexString("#FF9900FF"),
+						// BABYLON.Color4.FromHexString("#FFFFFFFF"),
+						// BABYLON.Color4.FromHexString("#FFFF66FF"),
 					];
 					// Camera renderen
 					const camera = new BABYLON.ArcRotateCamera(
@@ -90,6 +97,7 @@
 					// Lichtere lichtinval, anders word het grimmig
 					light.intensity = 2;
 					light.setDirectionToTarget(BABYLON.Vector3.Zero());
+					scene.clearColor = new BABYLON.Color3(0.8, 0.8, 0.8);
 
 					// Lichten dimmen met SPATIE met deze action kan ik later ook proberen de formule op pauze te zetten of een stap terug te gaan https://youtu.be/_fTS5W0RPkc?t=337
 					scene.actionManager = new BABYLON.ActionManager(scene);
@@ -129,8 +137,97 @@
 							}
 						}
 					}
+					// cubie.rotation.x = +0.1;
 
-					// Schermen aan de zijkant om beter te testen
+					function rotate(cubies, pivot, holder, axisName, isClockwise, options) {
+						const { layersCount, layer = null } = options;
+						let newCubies = [];
+						if (layersCount === 3) {
+							newCubies = cubies;
+						} else if (layersCount === 2 && layer !== null) {
+							const ignorePosition = layer === 1 ? -1 : 1;
+							newCubies = cubies.filter(
+								(cubie) => cubie.position[axisName] !== ignorePosition
+							);
+							console.log(ignorePosition);
+						} else if (layersCount === 1 && layer !== null) {
+							const startPosition = layer - 2;
+							newCubies = cubies.filter(
+								(cubie) => cubie.position[axisName] == startPosition
+							);
+							// console.log(newCubies);
+						}
+						if (cubies.length === 0) return;
+						console.log(cubies.length);
+						for (let cubie of newCubies) cubie.setParent(pivot);
+						const angle = isClockwise ? Math.PI / 2 : -Math.PI / 2;
+						console.log("Clockwise: " + isClockwise);
+						const animation = BABYLON.Animation.CreateAndStartAnimation(
+							"rotate",
+							pivot,
+							`rotation.${axisName}`,
+							rotationSpeed,
+							45,
+							0,
+							angle,
+							0
+						);
+
+						console.log("pivot: " + pivot);
+						console.log(angle);
+						console.log(animation);
+						if (animation !== null) {
+							animation.onAnimationEnd = () => {
+								for (let cubie of cubies) cubie.setParent(holder);
+								pivot.rotation = BABYLON.Vector3.Zero();
+								for (let cubie of cubies) {
+									cubie.setParent(null);
+									cubie.position.x = Math.round(cubie.position.x);
+									cubie.position.y = Math.round(cubie.position.y);
+									cubie.position.z = Math.round(cubie.position.z);
+								}
+							};
+							animationDone = true;
+							console.log(animationDone);
+						}
+					}
+
+					// setTimeout https://www.w3schools.com/jsref/met_win_settimeout.asp#:~:text=The%20setTimeout()%20method%20calls,use%20the%20setInterval()%20method.
+
+					// function Algoritm() {
+					// 	var interval = setTimeout(U, 1000);
+					// 	var interval = setTimeout(Ur, 1000);
+					// }
+					// Algoritm();
+
+					// aantalTurnen = [];
+					// for(i = 0; i < aantalTurnen; i++) {
+					// 	U D W D
+					// }
+
+					// function U() {
+					// 	setTimeout(() => {
+					// 		rotate(cubies, pivot, holder, "y", true, {
+					// 			layersCount: 1,
+					// 			layer: 3,
+					// 		}); // U
+					// 	}, 1000);
+					// }
+					function Ur() {
+						setTimeout(() => {
+							rotate(cubies, pivot, holder, "y", false, {
+								layersCount: 1,
+								layer: 3,
+							}); // M
+						}, 1000);
+					}
+					// Ur()
+
+					setTimeout(() => {
+						rotate(cubies, pivot, holder, "y", true, { layersCount: 1, layer: 3 }); // U
+					}, 1000);
+					// U();
+
 					scene.debugLayer.show();
 
 					return scene;
